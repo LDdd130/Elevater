@@ -1,0 +1,2 @@
+../Core/Src/door.c:10:6:open_door_request	8	static
+../Core/Src/door.c:27:6:update_door_nonblocking	16	static
