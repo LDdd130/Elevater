@@ -11,13 +11,12 @@
   <img src="https://img.shields.io/badge/HAL-STM32F4xx-0058A9?style=flat-square" alt="STM32 HAL">
 </p>
 
-<!-- TODO: assets/ 폴더에 아래 이미지를 추가한 뒤 주석을 해제하세요.
+<!-- TODO: assets/ 폴더에 아래 이미지를 추가한 뒤 주석을 해제하세요. -->
 <p>
-  <img src="./assets/elevator.png" width="58%" alt="Elevator Model">
+  <img src="./Elevator_working_ver/assets/image1.png" width="58%" alt="Elevator Model">
   &nbsp;&nbsp;
-  <img src="./assets/bt_app.png" width="35%" alt="Bluetooth App">
+  <!-- <img src="./assets/bt_app.png" width="35%" alt="Bluetooth App"> -->
 </p>
--->
 
 **물리 버튼과 스마트폰 앱으로 호출하면, 스텝모터가 카빈을 움직이고 초음파 센서 2채널이 실제 도착을 판정하는 3층 엘리베이터 모형 제어 시스템입니다.**
 
