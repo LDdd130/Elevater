@@ -13,7 +13,7 @@
 
 <!-- TODO: assets/ 폴더에 아래 이미지를 추가한 뒤 주석을 해제하세요. -->
 <p>
-  <img src="./Elevator_working_ver/asset/image1.png" width="58%" alt="Elevator Model">
+  <img src="./Elevator_working_ver/asset/image1.png" width=250 alt="Elevator Model">
   &nbsp;&nbsp;
   <!-- <img src="./assets/bt_app.png" width="35%" alt="Bluetooth App"> -->
 </p>
