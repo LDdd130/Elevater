@@ -45,14 +45,6 @@ https://github.com/user-attachments/assets/dfed8325-cb74-45d0-a27e-58f5c706b642
 | 액추에이터 | 28BYJ-48 스텝모터(카빈 승강), SG90 서보(문 개폐) |
 | 센서 | 초음파 거리 센서 × 2 (상·하 방향) |
 
-> **소스 트리 안내.** 저장소에는 세 개의 `main()` 구현이 있고 기능 범위가 다릅니다. 각 절 설명이 어느 트리를 기준으로 하는지 §12와 §15에 명시했습니다.
->
-> | 트리 / 파일 | 범위 | 비고 |
-> |---|---|---|
-> | `Core/Src/main.c` | 버튼 → FND · 부저 · 문 (PC9 문 열림 포함) | **현재 `Debug/` 빌드 산출물이 이 구성** |
-> | `Core/Src/main_for_test.c` | 전체 기능 통합 시연 (초음파·스텝모터·BT) | `Core/Src/stepper.c`의 `HAL_IncTick()` 훅 사용 |
-> | `Core_cp/Src/main.c` | 문 인터록 + 보류 요청(`pendingMoveFloor`)까지 반영 | CubeIDE 빌드 대상에는 포함되어 있지 않음 |
-
 ---
 
 ## 2. Key Features
