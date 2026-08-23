@@ -11,14 +11,11 @@
   <img src="https://img.shields.io/badge/HAL-STM32F4xx-0058A9?style=flat-square" alt="STM32 HAL">
 </p>
 
-<!-- TODO: assets/ 폴더에 아래 이미지를 추가한 뒤 주석을 해제하세요. -->
 <p>
-  <img src="./Elevator_working_ver/asset/image1.png" width=250 alt="Elevator Model">
-  &nbsp;&nbsp;
-  <!-- <img src="./assets/bt_app.png" width="35%" alt="Bluetooth App"> -->
+  <img src="./Elevator_working_ver/asset/image1.png" width="250" alt="Elevator Model">
 </p>
 
-**물리 버튼과 스마트폰 앱으로 호출하면, 스텝모터가 카빈을 움직이고 초음파 센서 2채널이 실제 도착을 판정하는 3층 엘리베이터 모형 제어 시스템입니다.**
+물리 버튼과 스마트폰 앱으로 호출하면, 스텝모터가 카빈을 움직이고 초음파 센서 2채널이 실제 도착을 판정하는 3층 엘리베이터 모형 제어 시스템입니다.
 
 ### :movie_camera: 시연 영상
 
@@ -30,16 +27,16 @@ https://github.com/user-attachments/assets/dfed8325-cb74-45d0-a27e-58f5c706b642
 
 ## 1. Project Overview
 
-엘리베이터의 핵심은 "몇 스텝 돌렸으니 도착했을 것"이라는 개루프 추정이 아니라 **실제 위치를 센서로 확인하고 정지하는 폐루프 판정**이라고 보고, 초음파 센서 2채널을 층 판정 기준으로 삼는 구조를 설계했습니다.
+"몇 스텝 돌렸으니 도착했을 것"이라는 개루프 추정 대신, 실제 위치를 센서로 확인하고 정지하는 폐루프 판정으로 설계했습니다. 초음파 센서 2채널이 층 판정 기준입니다.
 
-스텝모터는 층 이동 방향으로 계속 회전하고, 초음파 센서가 목표 층 조건을 연속으로 만족하면 그때 정지합니다. 층별로 요구되는 연속 만족 횟수(hit count)를 다르게 두어 센서 노이즈로 인한 조기 정지를 막았습니다. 문 개폐는 SG90 서보를 상태 머신으로 제어하며, **문이 닫힌 것이 확인되기 전에는 이동을 시작하지 않는** 안전 인터록을 두었습니다.
+스텝모터는 층 이동 방향으로 계속 회전하고, 초음파 센서가 목표 층 조건을 연속으로 만족하면 그때 정지합니다. 층별로 요구되는 연속 만족 횟수(hit count)를 다르게 두어 센서 노이즈로 인한 조기 정지를 막았습니다. 문 개폐는 SG90 서보를 상태 머신으로 제어하며, 문이 닫힌 것이 확인되기 전에는 이동을 시작하지 않는 안전 인터록을 두었습니다.
 
 입력은 물리 버튼 3개와 Bluetooth 앱 두 경로를 모두 지원하며, 앱에는 `#id:message` 형식으로 3개 디스플레이를 갱신합니다. 부저는 `HAL_Delay()` 대신 `HAL_GetTick()` 기반 논블로킹 상태 머신으로 만들어, 소리가 나는 동안에도 스텝모터·문·통신이 계속 동작합니다.
 
 | 항목 | 내용 |
 |---|---|
-| 프로젝트 형태 | 팀 프로젝트 <!-- TODO: 팀 인원 수와 본인 담당 범위를 확정해 주세요 --> |
-| 담당 범위 | <!-- TODO: 예) 스텝모터 이동 제어, 초음파 층 판정, Bluetooth 프로토콜 --> |
+| 프로젝트 형태 | 팀 프로젝트 **[인원 수 기재 필요]** |
+| 담당 범위 | **[작성 필요 — 예: 스텝모터 이동 제어 / 초음파 층 판정 / Bluetooth 프로토콜]** |
 | MCU | STM32F411RE (HSE Bypass + PLL M=4 / N=100 / P=2 → 100 MHz) |
 | RTOS | 미사용 — `HAL_GetTick()` 기반 논블로킹 협조적 스케줄링 |
 | Language | C |
@@ -78,12 +75,6 @@ https://github.com/user-attachments/assets/dfed8325-cb74-45d0-a27e-58f5c706b642
 
 ## 3. System Architecture & Control Flow
 
-<!-- TODO: assets/system_flow.png 추가 후 주석 해제
-<p align="center">
-  <img src="./assets/system_flow.png" width="100%" alt="Elevator System Architecture">
-</p>
--->
-
 ```text
  [입력]                       [판단]                        [출력]
 ┌───────────────┐      ┌─────────────────────┐      ┌────────────────────┐
@@ -93,7 +84,7 @@ https://github.com/user-attachments/assets/dfed8325-cb74-45d0-a27e-58f5c706b642
 ┌───────────────┐      │         │           │      └────────────────────┘
 │ Bluetooth     │─────►│         ▼           │      ┌────────────────────┐
 │ USART1 9600   │      │  is_door_closed()?  │─────►│ Servo (TIM10 CH1)  │
-│ "B0"/"B1"/"B2"│      │   NO → 문 닫기 후    │      │  PB8, 문 개폐      │
+│ "B0"/"B1"/"B2"│      │   NO → 문 닫기 후   │      │  PB8, 문 개폐      │
 └───────────────┘      │        보류         │      └────────────────────┘
                        │   YES → 이동 시작   │      ┌────────────────────┐
 ┌───────────────┐      │         │           │─────►│ Buzzer (TIM4 CH1)  │
@@ -124,7 +115,7 @@ https://github.com/user-attachments/assets/dfed8325-cb74-45d0-a27e-58f5c706b642
 
 ### 4.1 Input Capture 기반 거리 측정
 
-TIM3를 1 MHz(`PSC = 100-1`, 100 MHz 기준)로 설정해 **1 카운트 = 1 µs**가 되게 하고, 두 채널을 Input Capture로 사용합니다. Rising Edge에서 시작 시각을 캡처하고 폴라리티를 Falling으로 바꿔 종료 시각을 캡처하는 방식입니다.
+TIM3를 1 MHz(`PSC = 100-1`, 100 MHz 기준)로 설정해 1 카운트 = 1 µs가 되게 하고, 두 채널을 Input Capture로 사용합니다. Rising Edge에서 시작 시각을 캡처하고 폴라리티를 Falling으로 바꿔 종료 시각을 캡처하는 방식입니다.
 
 ```c
 if (IC_Value2_CH1 > IC_Value1_CH1)
@@ -211,7 +202,7 @@ static const uint8_t FULL_STEP_SEQ[4][4] =
 | `STEPPER_FLOOR_DOWN_DEGREES` | +3600° | 하강 방향 |
 | `STEPPER_MOVE_TIMEOUT_MS` | 30,000 ms | 이동 안전 타임아웃 |
 
-이동 각도를 층간 정확한 거리로 계산하지 않고 **충분히 큰 값(3600°)을 지정한 뒤 센서가 정지 시점을 결정**하는 방식입니다. 회전이 한 사이클 끝나도 도착 판정 전이면 `Stepper_TickMove()`가 같은 방향으로 회전을 재시작합니다.
+이동 각도를 층간 정확한 거리로 계산하지 않고 충분히 큰 값(3600°)을 지정한 뒤 센서가 정지 시점을 결정하는 방식입니다. 회전이 한 사이클 끝나도 도착 판정 전이면 `Stepper_TickMove()`가 같은 방향으로 회전을 재시작합니다.
 
 ```c
 /* 부호 → 방향 매핑은 이 한 줄이 유일한 근거다 */
@@ -222,7 +213,7 @@ uint8_t direction = (degrees >= 0) ? STEPPER_DIR_CCW : STEPPER_DIR_CW;
 
 ### 5.2 스텝 구동 주체
 
-`Stepper_Process()`는 `lastStepTick`과 현재 tick을 비교해 **2 ms가 지났을 때만** 한 스텝을 진행하는 논블로킹 함수입니다. 이 함수를 무엇이 호출하는지가 두 트리의 가장 큰 차이입니다.
+`Stepper_Process()`는 `lastStepTick`과 현재 tick을 비교해 2 ms가 지났을 때만 한 스텝을 진행하는 논블로킹 함수입니다. 이 함수를 무엇이 호출하는지가 두 트리의 가장 큰 차이입니다.
 
 **`Core/Src/stepper.c` — SysTick 훅**
 
@@ -330,7 +321,7 @@ ISR에서는 문자 수집과 플래그 세팅만 수행하고, 실제 명령 �
 #0:<메시지>\n#1:<메시지>\n#2:<메시지>\n
 ```
 
-`BT_SetAllDisplays(d0, d1, d2)`가 세 줄을 한 번에 보내고, `BT_SetDisplay(id, text)`는 한 줄만 보냅니다. **실제 코드가 보내는 문자열은 다음과 같습니다.**
+`BT_SetAllDisplays(d0, d1, d2)`가 세 줄을 한 번에 보내고, `BT_SetDisplay(id, text)`는 한 줄만 보냅니다. 실제 코드가 보내는 문자열은 다음과 같습니다.
 
 | 상황 | 함수 | `#0` | `#1` | `#2` |
 |---|---|---|---|---|
@@ -393,7 +384,7 @@ TIM4 CH1(PB6) PWM의 Prescaler를 바꿔 층마다 다른 음을 냅니다. `Per
 | 2F | 304 | 328 Hz | E4 |
 | 3F | 255 | 391 Hz | G4 |
 
-세 층의 음이 **C–E–G 화음 구성음**이 되도록 배치해 층이 올라갈수록 음이 높아지는 것을 청각적으로 인지할 수 있게 했습니다.
+세 층의 음을 C–E–G 화음 구성음으로 배치해 층이 올라갈수록 음이 높아지게 했습니다.
 
 ```c
 void update_buzzer_nonblocking(void)
@@ -539,15 +530,15 @@ Elevater/
 
 ### What I Learned
 
-- Timer Input Capture로 펄스 폭을 측정하는 방법과 16-bit 카운터 wrap 처리
-- 폴라리티 전환 기반 캡처 상태 머신이 어긋났을 때의 복구 설계
-- 개루프 스텝 제어의 한계와 센서 피드백을 결합한 폐루프 정지 판정
-- `HAL_IncTick()` 재정의로 CubeMX 생성 코드를 건드리지 않고 주기 작업을 삽입하는 기법
-- ISR과 메인 컨텍스트가 공유하는 상태에 `volatile`이 필요한 이유
-- `HAL_Delay()` 기반 코드를 tick 비교 상태 머신으로 바꾸는 리팩터링 패턴
-- UART Overrun 등 하드웨어 오류 플래그의 클리어 절차와 인터럽트 재구동
-- 상태 전이 Edge 판정(`previous == RUNNING && current == ARRIVED`)의 필요성
-- 소스 트리를 복제해 실험하면 **어느 트리가 진짜 빌드 대상인지 문서에 명시하지 않으면 설명과 코드가 어긋난다**는 것
+- Input Capture로 펄스 폭을 재려면 16-bit 카운터가 한 바퀴 도는 경우를 따로 보정해야 했습니다.
+- 폴라리티 전환 방식 캡처는 엣지를 한 번 놓치면 상태가 어긋난 채로 계속 갑니다. 복구 경로를 넣어야 했습니다.
+- 개루프 스텝 제어만으로는 층에 정확히 서지 못해, 센서 피드백으로 정지 시점을 판정하도록 바꿨습니다.
+- `HAL_IncTick()`을 재정의하면 CubeMX가 생성한 코드를 건드리지 않고도 1 ms 주기 작업을 넣을 수 있습니다.
+- ISR과 메인 컨텍스트가 함께 보는 상태에 `volatile`을 빼먹으면 최적화 단계에서 갱신이 사라집니다.
+- `HAL_Delay()`를 tick 비교 상태 머신으로 바꾸는 리팩터링을 부저·문·스텝모터에 반복 적용했습니다.
+- UART Overrun 같은 오류 플래그는 클리어 절차를 지켜야 수신 인터럽트가 다시 살아납니다.
+- 도착 알림은 상태 전이 엣지(`previous == RUNNING && current == ARRIVED`)로 잡아야 매 루프마다 재발행되지 않습니다.
+- 소스 트리를 복제해 실험할 때 어느 트리가 실제 빌드 대상인지 문서에 적어두지 않으면 설명과 코드가 어긋납니다.
 
 ---
 
@@ -567,8 +558,6 @@ Elevater/
 ---
 
 <div align="center">
-
-**Embedded Firmware · STM32 HAL · Sensor Feedback Control · Motor Control**
 
 GitHub: [@LDdd130](https://github.com/LDdd130)
 
