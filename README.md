@@ -45,6 +45,14 @@ https://github.com/user-attachments/assets/dfed8325-cb74-45d0-a27e-58f5c706b642
 | 액추에이터 | 28BYJ-48 스텝모터(카빈 승강), SG90 서보(문 개폐) |
 | 센서 | 초음파 거리 센서 × 2 (상·하 방향) |
 
+> **소스 트리 안내.** 저장소에는 세 개의 `main()` 구현이 있고 기능 범위가 다릅니다. 각 절 설명이 어느 트리를 기준으로 하는지 §12와 §15에 명시했습니다.
+>
+> | 트리 / 파일 | 범위 | 비고 |
+> |---|---|---|
+> | `Core/Src/main.c` | 버튼 → FND · 부저 · 문 (PC9 문 열림 포함) | **현재 `Debug/` 빌드 산출물이 이 구성** |
+> | `Core/Src/main_for_test.c` | 전체 기능 통합 시연 (초음파·스텝모터·BT) | `Core/Src/stepper.c`의 `HAL_IncTick()` 훅 사용 |
+> | `Core_cp/Src/main.c` | 문 인터록 + 보류 요청(`pendingMoveFloor`)까지 반영 | CubeIDE 빌드 대상에는 포함되어 있지 않음 |
+
 ---
 
 ## 2. Key Features
@@ -67,29 +75,10 @@ https://github.com/user-attachments/assets/dfed8325-cb74-45d0-a27e-58f5c706b642
 
 ## 3. System Architecture & Control Flow
 
-```text
- [입력]                       [판단]                        [출력]
-┌───────────────┐      ┌─────────────────────┐      ┌────────────────────┐
-│ Button PC5/6/8│─────►│                     │─────►│ Stepper (PB1/13/14/│
-│ (Edge Detect) │      │  Stepper_Request    │      │        15)         │
-└───────────────┘      │    MoveToFloor()    │      │  28BYJ-48 4상 구동 │
-┌───────────────┐      │         │           │      └────────────────────┘
-│ Bluetooth     │─────►│         ▼           │      ┌────────────────────┐
-│ USART1 9600   │      │  is_door_closed()?  │─────►│ Servo (TIM10 CH1)  │
-│ "B0"/"B1"/"B2"│      │   NO → 문 닫기 후   │      │  PB8, 문 개폐      │
-└───────────────┘      │        보류         │      └────────────────────┘
-                       │   YES → 이동 시작   │      ┌────────────────────┐
-┌───────────────┐      │         │           │─────►│ Buzzer (TIM4 CH1)  │
-│ Ultrasonic ×2 │─────►│         ▼           │      │  PB6, 층별 음계    │
-│ TIM3 IC       │      │  Stepper_TickMove() │      └────────────────────┘
-│ PA6 / PA7     │      │  · 도착 판정        │      ┌────────────────────┐
-└───────────────┘      │  · 30 s 타임아웃    │─────►│ 7-Segment (GPIO)   │
-                       └─────────────────────┘      │  현재 층 표시      │
-                                  │                 └────────────────────┘
-                                  ▼                 ┌────────────────────┐
-                          도착 → open_door_request()│ BT Display #0/#1/#2│
-                                                    └────────────────────┘
-```
+<p align="center">
+  <img src="./Elevator_working_ver/asset/architecture.svg" width="100%"
+       alt="Elevator 시스템 아키텍처 — 물리 버튼과 Bluetooth 호출을 문 인터록으로 검사하고 초음파 센서로 도착을 판정해 스텝모터, 문, 부저, 7-Segment와 앱 표시를 제어한다.">
+</p>
 
 ### Control Flow
 
@@ -235,20 +224,10 @@ ISR과 메인 컨텍스트가 함께 접근하는 상태 변수(`currentStepInde
 
 ### 5.3 Move State Machine
 
-```text
-STEPPER_MOVE_IDLE
-      │ Stepper_RequestMoveToFloor(target)
-      ▼
-  문이 닫혀 있는가?
-      │ NO  → close_door_request() + pendingMoveFloor 저장 → (문 닫힌 뒤 재시도)
-      │ YES
-      ▼
-STEPPER_MOVE_RUNNING ──── 30 s 초과 ────► STEPPER_MOVE_TIMEOUT
-      │                                          (Stepper_Stop)
-      │ hit count 충족
-      ▼
-STEPPER_MOVE_ARRIVED ────► open_door_request()
-```
+<p align="center">
+  <img src="./Elevator_working_ver/asset/move_fsm.svg" width="100%"
+       alt="Elevator 이동 상태 머신 — 문이 열려 있으면 요청을 보류하고 닫힌 뒤 이동하며 초음파 hit count 충족 시 ARRIVED, 30초 초과 시 TIMEOUT으로 전이한다.">
+</p>
 
 - 목표 층이 1~3 범위를 벗어나면 즉시 `STEPPER_MOVE_INVALID`를 반환합니다.
 - 이미 목표 층에 있으면 회전 없이 `STEPPER_MOVE_ARRIVED`로 처리합니다.
