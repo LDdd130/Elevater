@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="740" viewBox="0 0 980 740" role="img" aria-labelledby="ttl desc">
+  <title id="ttl">Elevator 시스템 아키텍처</title>
+  <desc id="desc">물리 버튼과 Bluetooth 호출, 문 인터록, 초음파 기반 이동 및 도착 판정, 스텝모터와 문·표시 출력의 관계를 나타낸다.</desc>
+  <defs>
+    <style>
+      .bg{fill:#fff}.panel{fill:#f6f8fa;stroke:#d0d7de}.card{fill:#fff;stroke:#8c959f}.fillA{fill:#ddf4ff;stroke:#54aeff}.fillB{fill:#ffebe9;stroke:#ff8182}.fillC{fill:#fbefff;stroke:#d8b9ff}.fillN{fill:#eef1f4;stroke:#afb8c1}
+      .t{fill:#1f2328;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}.m,.lbl{fill:#656d76;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}.k{fill:#1f2328;font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+      .hdr{fill:#0969da;font:700 14px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif}.hdrB{fill:#cf222e;font:700 14px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif}.hdrC{fill:#8250df;font:700 14px -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif}
+      .wire{stroke:#7d8590;fill:none;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}.wired{stroke:#7d8590;fill:none;stroke-width:1.4;stroke-dasharray:5 4;stroke-linejoin:round;stroke-linecap:round}
+      @media(prefers-color-scheme:dark){.bg{fill:#0d1117}.panel{fill:#161b22;stroke:#30363d}.card{fill:#0d1117;stroke:#6e7681}.fillA{fill:#12283f;stroke:#316dca}.fillB{fill:#3c1618;stroke:#b62324}.fillC{fill:#271052;stroke:#8957e5}.fillN{fill:#21262d;stroke:#484f58}.t,.k{fill:#e6edf3}.m,.lbl{fill:#9198a1}.hdr{fill:#58a6ff}.hdrB{fill:#ff7b72}.hdrC{fill:#d2a8ff}.wire,.wired{stroke:#7d8590}}
+    </style>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#7d8590"/></marker>
+  </defs>
+
+  <rect class="bg" width="980" height="740"/>
+  <rect x="24" y="24" width="240" height="692" rx="10" class="panel" stroke-width="1.2"/>
+  <rect x="286" y="24" width="360" height="692" rx="10" class="panel" stroke-width="1.2"/>
+  <rect x="668" y="24" width="288" height="692" rx="10" class="panel" stroke-width="1.2"/>
+  <text x="44" y="51" class="hdrC">Input</text>
+  <text x="306" y="51" class="hdr">Decision &amp; State</text>
+  <text x="688" y="51" class="hdrB">Output</text>
+
+  <rect x="44" y="82" width="200" height="72" rx="7" class="fillC" stroke-width="1.2"/>
+  <text x="58" y="106" class="k" font-size="10.5" font-weight="700">Floor Buttons</text>
+  <text x="58" y="127" class="t" font-size="10">PC5 / PC6 / PC8</text>
+  <text x="58" y="144" class="m" font-size="9.5">Falling Edge · 1~3층</text>
+  <line x1="244" y1="118" x2="310" y2="118" class="wire" marker-end="url(#ah)"/>
+
+  <rect x="44" y="190" width="200" height="82" rx="7" class="fillC" stroke-width="1.2"/>
+  <text x="58" y="214" class="k" font-size="10.5" font-weight="700">Bluetooth · USART1</text>
+  <text x="58" y="235" class="t" font-size="10">9600 · "B0" / "B1" / "B2"</text>
+  <text x="58" y="253" class="m" font-size="9.5">1-byte IT · 오류 시 재무장</text>
+  <polyline points="244,231 276,231 276,148 310,148" class="wire" marker-end="url(#ah)"/>
+
+  <rect x="310" y="78" width="312" height="96" rx="7" class="fillA" stroke-width="1.2"/>
+  <text x="324" y="102" class="k" font-size="11.5" font-weight="700">Stepper_RequestMoveToFloor()</text>
+  <text x="324" y="124" class="t" font-size="10">호출 경로 통합 · 목표 층 범위 검사</text>
+  <text x="324" y="142" class="m" font-size="9.5">이동 중 재호출 반려 · 현재 층이면 즉시 ARRIVED</text>
+  <text x="324" y="160" class="m" font-size="9.5">유효 요청만 문 인터록으로 전달</text>
+  <line x1="466" y1="174" x2="466" y2="220" class="wire" marker-end="url(#ah)"/>
+
+  <rect x="310" y="220" width="312" height="108" rx="7" class="fillB" stroke-width="1.2"/>
+  <text x="324" y="244" class="k" font-size="11.5" font-weight="700">Door Interlock</text>
+  <text x="324" y="266" class="t" font-size="10">is_door_closed()?</text>
+  <text x="324" y="286" class="m" font-size="9.5">NO  → close_door_request()</text>
+  <text x="324" y="303" class="m" font-size="9.5">       pendingMoveFloor에 보류</text>
+  <text x="324" y="320" class="m" font-size="9.5">YES → 이동 시작</text>
+  <line x1="622" y1="268" x2="692" y2="268" class="wire" marker-end="url(#ah)"/>
+  <text x="657" y="259" class="lbl" font-size="8.8" text-anchor="middle">close</text>
+  <line x1="466" y1="328" x2="466" y2="380" class="wire" marker-end="url(#ah)"/>
+  <text x="480" y="357" class="lbl" font-size="9">door closed</text>
+
+  <rect x="692" y="220" width="240" height="96" rx="7" class="fillB" stroke-width="1.2"/>
+  <text x="706" y="244" class="k" font-size="11" font-weight="700">Door Controller</text>
+  <text x="706" y="266" class="t" font-size="10">SG90 · TIM10 CH1 · PB8</text>
+  <text x="706" y="284" class="m" font-size="9.5">OPEN / HOLD / CLOSE 상태 머신</text>
+  <text x="706" y="301" class="m" font-size="9.5">1 µs 분해능 · 50 Hz PWM</text>
+  <line x1="692" y1="298" x2="622" y2="298" class="wired" marker-end="url(#ah)"/>
+  <text x="657" y="316" class="lbl" font-size="8.8" text-anchor="middle">closed state</text>
+
+  <rect x="44" y="390" width="200" height="92" rx="7" class="fillA" stroke-width="1.2"/>
+  <text x="58" y="414" class="k" font-size="10.5" font-weight="700">Ultrasonic ×2</text>
+  <text x="58" y="435" class="t" font-size="10">TIM3 CH1 / CH2 Input Capture</text>
+  <text x="58" y="453" class="m" font-size="9.5">PA6 / PA7 · 16-bit Wrap 보정</text>
+  <text x="58" y="470" class="m" font-size="9.5">층별 Threshold + 연속 hit</text>
+  <line x1="244" y1="436" x2="310" y2="436" class="wire" marker-end="url(#ah)"/>
+
+  <rect x="310" y="380" width="312" height="108" rx="7" class="fillN" stroke-width="1.2"/>
+  <text x="324" y="404" class="k" font-size="11.5" font-weight="700">Stepper_TickMove()</text>
+  <text x="324" y="426" class="t" font-size="10">초음파 재측정 · 도착 조건 판정</text>
+  <text x="324" y="444" class="m" font-size="9.5">120 ms 주기 또는 64-step Callback</text>
+  <text x="324" y="461" class="m" font-size="9.5">층별 hit count 충족 시 정지</text>
+  <text x="324" y="478" class="m" font-size="9.5">30 s 초과 시 TIMEOUT</text>
+  <line x1="622" y1="434" x2="692" y2="434" class="wire" marker-end="url(#ah)"/>
+
+  <rect x="692" y="380" width="240" height="108" rx="7" class="fillN" stroke-width="1.2"/>
+  <text x="706" y="404" class="k" font-size="11" font-weight="700">28BYJ-48 Stepper</text>
+  <text x="706" y="426" class="t" font-size="10">PB1 / PB13 / PB14 / PB15</text>
+  <text x="706" y="444" class="m" font-size="9.5">Full-step 4상 · 2 ms/step</text>
+  <text x="706" y="461" class="m" font-size="9.5">HAL_IncTick() Hook에서 구동</text>
+  <text x="706" y="478" class="m" font-size="9.5">도착·Timeout에서 Coil OFF</text>
+
+  <line x1="466" y1="488" x2="466" y2="540" class="wire" marker-end="url(#ah)"/>
+  <text x="480" y="518" class="lbl" font-size="9">RUNNING → ARRIVED edge</text>
+  <rect x="310" y="540" width="312" height="112" rx="7" class="fillA" stroke-width="1.2"/>
+  <text x="324" y="564" class="k" font-size="11.5" font-weight="700">Arrival Handling</text>
+  <text x="324" y="586" class="t" font-size="10">open_door_request() · 층별 Tone</text>
+  <text x="324" y="604" class="m" font-size="9.5">7-Segment 현재 층 갱신</text>
+  <text x="324" y="621" class="m" font-size="9.5">BT #0/#1/#2 Display + 소요 시간</text>
+  <text x="324" y="638" class="m" font-size="9.5">도착 Edge에서 한 번만 실행</text>
+  <line x1="622" y1="596" x2="692" y2="596" class="wire" marker-end="url(#ah)"/>
+
+  <rect x="692" y="540" width="240" height="112" rx="7" class="fillA" stroke-width="1.2"/>
+  <text x="706" y="564" class="k" font-size="10.5" font-weight="700">Arrival Output</text>
+  <text x="706" y="586" class="t" font-size="10">Buzzer · TIM4 CH1 · PB6</text>
+  <text x="706" y="604" class="t" font-size="10">7-Segment · GPIO</text>
+  <text x="706" y="622" class="t" font-size="10">Bluetooth Display · USART1</text>
+  <text x="706" y="640" class="m" font-size="9.5">부저는 HAL_GetTick() 기반 논블로킹</text>
+  <polyline points="932,570 944,570 944,268 932,268" class="wired" marker-end="url(#ah)"/>
+
+  <rect x="44" y="548" width="200" height="78" rx="7" class="card" stroke-width="1.2"/>
+  <text x="58" y="572" class="k" font-size="10.5" font-weight="700">System Tick</text>
+  <text x="58" y="593" class="t" font-size="10">HAL_IncTick() / HAL_GetTick()</text>
+  <text x="58" y="611" class="m" font-size="9.5">Stepper · Door · Buzzer 공통 시간축</text>
+  <polyline points="244,587 276,587 276,470 310,470" class="wired" marker-end="url(#ah)"/>
+  <rect x="44" y="648" width="200" height="42" rx="21" class="fillN" stroke-width="1.2"/>
+  <text x="144" y="674" class="m" font-size="9.5" text-anchor="middle">100 MHz · HAL Tick 기반 협력식 처리</text>
+</svg>
